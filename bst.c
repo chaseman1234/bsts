@@ -315,13 +315,13 @@ int bst_contains(int val, struct bst* bst) {
  */
 struct bst_iterator {
 	struct stack* stack;
-}
+};
 
 
 static int _bst_size(struct bst_node* node) {
 	if (!node) return 0;
 	return 1 + _bst_size(node->left) + _bst_size(node->right);
-}
+};
 
 
 
@@ -337,8 +337,8 @@ static int _bst_size(struct bst_node* node) {
  *   Should return the total number of elements stored in bst.
  */
 int bst_size(struct bst* bst) {
-	if (!node) return 0;
-	return 1 + _bst_size(node->left) + _bst_size(node->right);
+	assert(bst);
+	return _bst_size(bst->root);
 }
 
 
