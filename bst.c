@@ -41,6 +41,10 @@ struct bst* bst_create() {
 
 void bst_free(struct bst* bst) {
   assert(bst);
+  /*
+   * Assume that bst_remove() frees each node it removes and use it to free
+   * all of the nodes in the tree.
+   */
   while (!bst_isempty(bst)) {
     bst_remove(bst->root->val, bst);
   }
@@ -52,6 +56,9 @@ int bst_isempty(struct bst* bst) {
   return bst->root == NULL;
 }
 
+/*
+ * Helper function to generate a single BST node containing a given value.
+ */
 struct bst_node* _bst_node_create(int val) {
   struct bst_node* n = malloc(sizeof(struct bst_node));
   assert(n);
@@ -60,6 +67,15 @@ struct bst_node* _bst_node_create(int val) {
   return n;
 }
 
+/*
+ * Helper function to insert a given value into a subtree of a BST rooted at
+ * a given node. Operates recursively by determining into which subtree (left
+ * or right) under the given node the value should be inserted and performing
+ * the insertion on that subtree.
+ *
+ * Returns the root of the given subtree, modified to contain a new node with
+ * the specified value.
+ */
 struct bst_node* _bst_subtree_insert(int val, struct bst_node* n) {
   if (n == NULL) {
     return _bst_node_create(val);
@@ -76,6 +92,9 @@ void bst_insert(int val, struct bst* bst) {
   bst->root = _bst_subtree_insert(val, bst->root);
 }
 
+/*
+ * Helper function to return the minimum value in a subtree of a BST.
+ */
 int _bst_subtree_min_val(struct bst_node* n) {
   while (n->left != NULL) {
     n = n->left;
@@ -83,6 +102,15 @@ int _bst_subtree_min_val(struct bst_node* n) {
   return n->val;
 }
 
+/*
+ * Helper function to remove a given value from a subtree of a BST rooted at
+ * a specified node. Operates recursively by figuring out whether val is in
+ * the left or the right subtree of the specified node and performing the
+ * remove operation on that subtree.
+ *
+ * Returns the potentially new root of the given subtree, modified to have
+ * the specified value removed.
+ */
 struct bst_node* _bst_subtree_remove(int val, struct bst_node* n) {
   if (n == NULL) {
     return NULL;
@@ -138,10 +166,17 @@ int bst_contains(int val, struct bst* bst) {
  *
  *****************************************************************************/
 
+/*
+ * This is the structure you will use to create an in-order BST iterator. It
+ * is up to you how to define this structure.
+ */
 struct bst_iterator {
   struct stack* stack;
 };
 
+/*
+ * Helper function to recursively compute the size of a subtree.
+ */
 static int _bst_size(struct bst_node* node) {
   if (!node) return 0;
   return 1 + _bst_size(node->left) + _bst_size(node->right);
@@ -152,6 +187,9 @@ int bst_size(struct bst* bst) {
   return _bst_size(bst->root);
 }
 
+/*
+ * Helper function to recursively compute the height of a subtree.
+ */
 static int _bst_height(struct bst_node* node) {
   if (!node) return -1;
   int left = _bst_height(node->left);
@@ -164,6 +202,9 @@ int bst_height(struct bst* bst) {
   return _bst_height(bst->root);
 }
 
+/*
+ * Helper function to check for a root-to-leaf path that sums to a target.
+ */
 static int _bst_path_sum(struct bst_node* node, int sum) {
   if (!node) return 0;
   if (!node->left && !node->right) return node->val == sum;
@@ -176,6 +217,9 @@ int bst_path_sum(int sum, struct bst* bst) {
   return _bst_path_sum(bst->root, sum);
 }
 
+/*
+ * Helper function to push a path of left children to the stack.
+ */
 static void _push_left_path(struct stack* s, struct bst_node* node) {
   while (node) {
     stack_push(s, node);
@@ -183,6 +227,9 @@ static void _push_left_path(struct stack* s, struct bst_node* node) {
   }
 }
 
+/*
+ * Initializes a new BST iterator for in-order traversal.
+ */
 struct bst_iterator* bst_iterator_create(struct bst* bst) {
   assert(bst);
   struct bst_iterator* iter = malloc(sizeof(struct bst_iterator));
@@ -192,17 +239,26 @@ struct bst_iterator* bst_iterator_create(struct bst* bst) {
   return iter;
 }
 
+/*
+ * Frees all memory used by a BST iterator.
+ */
 void bst_iterator_free(struct bst_iterator* iter) {
   assert(iter);
   stack_free(iter->stack);
   free(iter);
 }
 
+/*
+ * Returns 1 if there are more values to return in in-order traversal.
+ */
 int bst_iterator_has_next(struct bst_iterator* iter) {
   assert(iter);
   return !stack_isempty(iter->stack);
 }
 
+/*
+ * Returns the next value in the in-order traversal.
+ */
 int bst_iterator_next(struct bst_iterator* iter) {
   assert(iter);
   assert(bst_iterator_has_next(iter));
